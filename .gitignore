@@ -177,6 +177,7 @@ pyrightconfig.json
 
 # Dataset
 data/
+output/
 
 # logs
 checkpoints/

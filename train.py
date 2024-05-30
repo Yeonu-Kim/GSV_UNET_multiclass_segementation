@@ -138,20 +138,51 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Set data
 dataset = Cityscapes('./data/', split='train', mode='fine',
                     target_type='semantic')
-# 17
+# 8, 11, 12, 17, 21, 23
 ignore_index = 255
 class_raw = list(range(34)) + [-1]
-valid_classes = [ignore_index, 17]
-class_names = ['unlabelled', 'pole']
+'''
+valid_classes = [ignore_index,7, 8, 11, 12, 13, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 31, 32, 33]
+class_names = ['unlabelled', 'road', 'sidewalk', 'building', 'wall', 'fence', 'pole', 'traffic_light', \
+               'traffic_sign', 'vegetation', 'terrain', 'sky', 'person', 'rider', 'car', 'truck', 'bus', \
+               'train', 'motorcycle', 'bicycle']
+colors = [
+        [  0,   0,   0],
+        [128, 64, 128],
+        [244, 35, 232],
+        [70, 70, 70],
+        [102, 102, 156],
+        [190, 153, 153],
+        [153, 153, 153],
+        [250, 170, 30],
+        [220, 220, 0],
+        [107, 142, 35],
+        [152, 251, 152],
+        [0, 130, 180],
+        [220, 20, 60],
+        [255, 0, 0],
+        [0, 0, 142],
+        [0, 0, 70],
+        [0, 60, 100],
+        [0, 80, 100],
+        [0, 0, 230],
+        [119, 11, 32],
+    ]
+'''
+target_index = 23
+target_class = 'sky'
+valid_classes = [ignore_index, target_index]
+class_names = ['unlabelled', target_class]
 void_classes = [c for c in class_raw if c not in valid_classes]
 class_map = dict(zip(valid_classes, range(len(valid_classes))))
 n_classes=len(valid_classes)
 colors = [  
     [0, 0, 0],
-    [111, 74, 0]
+    [70, 70, 70]
 ]
 label_colours = dict(zip(range(n_classes), colors))
 
+# Set of ImageNet dataset
 transform = transforms.Compose([
     transforms.Resize((256, 512)),
     transforms.RandomHorizontalFlip(),
@@ -182,47 +213,7 @@ def train():
 
     # Train the model
     trainer.fit(model)
-    torch.save(model.state_dict(), './result/pole_model.pth')
+    torch.save(model.state_dict(), f'./result/{target_class}_model.pth')
 
 if __name__ == "__main__":
     train()
-
-# # Test
-# model.load_state_dict(torch.load('./result/model.pth'))
-
-# test_class = MyClass('./data/', split='val', mode='fine',
-#                    target_type='semantic',transforms=transform)  
-# test_loader=DataLoader(test_class, batch_size=12, 
-#                       shuffle=False)
-
-# model=model.cuda()
-# model.eval()
-# with torch.no_grad():
-#     for batch in test_loader:
-#         img,seg=batch
-#         output=model(img.cuda())
-#         break
-# print(img.shape,seg.shape,output.shape)
-
-# inv_normalize = transforms.Normalize(
-#     mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225],
-#     std=[1/0.229, 1/0.224, 1/0.255]
-# )
-# sample=8
-# invimg=inv_normalize(img[sample])
-# outputx=output.detach().cpu()[sample]
-# encoded_mask=encode_segmap(seg[sample].clone()) #(256, 512)
-# decoded_mask=decode_segmap(encoded_mask.clone())  #(256, 512)
-# decoded_ouput=decode_segmap(torch.argmax(outputx,0))
-# fig,ax=plt.subplots(ncols=3,figsize=(16,50),facecolor='white')  
-# ax[0].imshow(np.moveaxis(invimg.numpy(),0,2)) #(3,256, 512)
-# #ax[1].imshow(encoded_mask,cmap='gray') #(256, 512)
-# ax[1].imshow(decoded_mask) #(256, 512, 3)
-# ax[2].imshow(decoded_ouput) #(256, 512, 3)
-# ax[0].axis('off')
-# ax[1].axis('off')
-# ax[2].axis('off')
-# ax[0].set_title('Input Image')
-# ax[1].set_title('Ground mask')
-# ax[2].set_title('Predicted mask')
-# plt.savefig('result.png',bbox_inches='tight')
